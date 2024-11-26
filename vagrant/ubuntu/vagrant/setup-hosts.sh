@@ -4,9 +4,7 @@
 set -e
 
 THISHOST=$2
-
-# Automatically detect the primary network interface
-IFNAME=$(ip -o -4 route show to default | awk '{print $5}')
+IFNAME=$1
 
 if [ -z "$IFNAME" ]; then
     echo "Error: Could not determine the network interface. Exiting."
