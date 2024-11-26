@@ -1,15 +1,26 @@
 #!/bin/bash
 #
-# Set up /etc/hosts so we can resolve all the machines in the VirtualBox network
+# Set up /etc/hosts so we can resolve all the machines in the VirtualBox/Hyper-V network
 set -e
-IFNAME=$1
+
 THISHOST=$2
 
-# Host will have 3 interfaces: lo, DHCP assigned NAT network and static on VM network
-# We want the VM network
-PRIMARY_IP="$(ip -4 addr show | grep "inet" | egrep -v '(dynamic|127\.0\.0)' | awk '{print $2}' | cut -d/ -f1)"
-NETWORK=$(echo $PRIMARY_IP | awk 'BEGIN {FS="."} ; { printf("%s.%s.%s", $1, $2, $3) }')
-#sed -e "s/^.*${HOSTNAME}.*/${PRIMARY_IP} ${HOSTNAME} ${HOSTNAME}.local/" -i /etc/hosts
+# Automatically detect the primary network interface
+IFNAME=$(ip -o -4 route show to default | awk '{print $5}')
+
+if [ -z "$IFNAME" ]; then
+    echo "Error: Could not determine the network interface. Exiting."
+    exit 1
+fi
+
+# Get the primary IP associated with the interface
+PRIMARY_IP=$(ip -4 addr show "$IFNAME" | grep "inet" | awk '{print $2}' | cut -d/ -f1)
+if [ -z "$PRIMARY_IP" ]; then
+    echo "Error: Could not determine the IP address for interface $IFNAME. Exiting."
+    exit 1
+fi
+
+NETWORK=$(echo "$PRIMARY_IP" | awk -F. '{ printf "%s.%s.%s", $1, $2, $3 }')
 
 # Export PRIMARY IP as an environment variable
 echo "PRIMARY_IP=${PRIMARY_IP}" >> /etc/environment
@@ -17,9 +28,8 @@ echo "PRIMARY_IP=${PRIMARY_IP}" >> /etc/environment
 # Export architecture as environment variable to download correct versions of software
 echo "ARCH=amd64"  | sudo tee -a /etc/environment > /dev/null
 
-# remove ubuntu-jammy entry
-sed -e '/^.*ubuntu-jammy.*/d' -i /etc/hosts
-sed -e "/^.*$2.*/d" -i /etc/hosts
+# Remove any existing entries related to this host
+sed -i "/^.*$THISHOST.*/d" /etc/hosts
 
 # Update /etc/hosts about other hosts
 cat >> /etc/hosts <<EOF

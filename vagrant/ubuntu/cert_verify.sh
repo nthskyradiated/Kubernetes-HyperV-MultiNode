@@ -9,11 +9,11 @@ NC='\033[0m'
 
 # IP addresses 
 PRIMARY_IP=$(ip addr show eth0 primary | grep "inet " | awk '{print $2}' | cut -d / -f 1)
-CONTROL01=$(dig +short controlplane01 | head -n1)
-CONTROL02=$(dig +short controlplane02 | head -n1)
-NODE01=$(dig +short node01 | head -n1)
-NODE02=$(dig +short node02 | head -n1)
-LOADBALANCER=$(dig +short loadbalancer | head -n1) 
+CONTROL01=$(dig +short controlplane01)
+CONTROL02=$(dig +short controlplane02)
+NODE01=$(dig +short node01)
+NODE02=$(dig +short node02)
+LOADBALANCER=$(dig +short loadbalancer)
 LOCALHOST="127.0.0.1"
 
 # All Cert Location
