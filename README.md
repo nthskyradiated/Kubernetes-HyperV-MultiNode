@@ -20,3 +20,4 @@ Always run the `cert_verify.sh` script at the places it suggests, and always ens
 * Two control plane nodes (`controlplane01` and `controlplane02`) running the control plane components as operating system services. This is not a kubeadm cluster as you are used to if you have been doing the CKA course. The control planes are *not* themselves nodes, therefore will not show with `kubectl get nodes`.
 * Two worker nodes (`node01` and `node02`)
 * One loadbalancer VM running [HAProxy](https://www.haproxy.org/) to balance requests between the two API servers and provide the endpoint for your KUBECONFIG.
+* In case you want to run a minimal setup, just reduce the number of vm's (sometimes I remove the load balancer and 2nd control plane from the vagrantfile). Just be mindful of the configuration steps and adjust accordingly.

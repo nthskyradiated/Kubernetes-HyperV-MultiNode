@@ -91,7 +91,7 @@ ExecStart=/usr/local/bin/etcd \\
   --listen-client-urls https://${PRIMARY_IP}:2379,https://127.0.0.1:2379 \\
   --advertise-client-urls https://${PRIMARY_IP}:2379 \\
   --initial-cluster-token etcd-cluster-0 \\
-  --initial-cluster controlplane01=https://${CONTROL01}:2380 \\
+  --initial-cluster controlplane01=https://${CONTROL01}:2380,controlplane02=https://${CONTROL02}:2380 \\
   --initial-cluster-state new \\
   --data-dir=/var/lib/etcd
 Restart=on-failure
