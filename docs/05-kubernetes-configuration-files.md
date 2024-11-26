@@ -17,7 +17,7 @@ Each kubeconfig requires a Kubernetes API Server to connect to. To support high 
 [//]: # (host:controlplane01)
 
 ```bash
-LOADBALANCER=$(dig +short loadbalancer | | head -n1)
+LOADBALANCER=$(dig +short loadbalancer | head -n1)
 ```
 
 ### The kube-proxy Kubernetes Configuration File

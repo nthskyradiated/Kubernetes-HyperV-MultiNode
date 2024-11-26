@@ -57,8 +57,8 @@ The instance internal IP address will be used to serve client requests and commu
 Retrieve the internal IP address of the controlplane(etcd) nodes, and also that of controlplane01 and controlplane02 for the etcd cluster member list
 
 ```bash
-CONTROL01=$(dig +short controlplane01 | | head -n1)
-CONTROL02=$(dig +short controlplane02 | | head -n1)
+CONTROL01=$(dig +short controlplane01 | head -n1)
+CONTROL02=$(dig +short controlplane02 | head -n1)
 ```
 
 Each etcd member must have a unique name within an etcd cluster. Set the etcd name to match the hostname of the current compute instance:
@@ -91,7 +91,7 @@ ExecStart=/usr/local/bin/etcd \\
   --listen-client-urls https://${PRIMARY_IP}:2379,https://127.0.0.1:2379 \\
   --advertise-client-urls https://${PRIMARY_IP}:2379 \\
   --initial-cluster-token etcd-cluster-0 \\
-  --initial-cluster controlplane01=https://${CONTROL01}:2380,controlplane02=https://${CONTROL02}:2380 \\
+  --initial-cluster controlplane01=https://${CONTROL01}:2380 \\
   --initial-cluster-state new \\
   --data-dir=/var/lib/etcd
 Restart=on-failure

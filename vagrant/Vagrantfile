@@ -29,7 +29,7 @@ RESOURCES = {
 
 def setup_dns(node)
   node.vm.provision "setup-hosts", type: "shell", path: "ubuntu/vagrant/setup-hosts.sh" do |s|
-    s.args = ["eth0", node.vm.hostname]
+    s.args = ["eth0", node.vm.hostname, "#{IP_NW}"]
   end
   node.vm.provision "setup-dns", type: "shell", path: "ubuntu/update-dns.sh"
 end
