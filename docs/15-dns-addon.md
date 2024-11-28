@@ -11,7 +11,7 @@ Deploy the `coredns` cluster add-on:
 Note that if you have [changed the service CIDR range](./01-prerequisites.md#service-network) and thus this file, you will need to save your copy onto `controlplane01` (paste to vi, then save) and apply that.
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/mmumshad/kubernetes-the-hard-way/master/deployments/coredns.yaml
+kubectl apply -f https://raw.githubusercontent.com/nthskyradiated/Kubernetes-HyperV-MultiNode/main/deployments/coredns.yaml
 ```
 
 > output

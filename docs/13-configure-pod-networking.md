@@ -26,6 +26,10 @@ apply the manifests:
 ```bash
 kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.1/manifests/crds.yaml
 ```
+apply the edited manifest (make sure you edited it!)
+```bash
+kubectl apply -f custom-resources.yaml
+```
 
 ```bash
 kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.1/manifests/tigera-operator.yaml
