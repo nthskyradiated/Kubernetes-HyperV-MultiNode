@@ -7,5 +7,5 @@
 * IP Addresses: I use statically assigned IPs on private network.
 * Certificate file names: I use \<name\>.crt for public certificate and \<name\>.key for private key file. Whereas original one uses \<name\>-.pem for certificate and \<name\>-key.pem for private key.
 * I generate separate certificates for etcd-server instead of using kube-apiserver.
-* Network: we use weavenet.
+* Network: I use Project Calico
 * Add E2E Tests.

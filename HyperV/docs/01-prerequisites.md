@@ -30,7 +30,7 @@ To change this, edit the [Vagrantfile](../../vagrant/Vagrantfile) and set the ne
 
 Note that you do not need to edit any of the other scripts to make the above change. It is all managed by shell variable computations based on the assigned VM  IP  addresses and the values in the hosts file (also computed).
 
-It is *recommended* that you leave the pod and service networks with the following defaults. If you change them then you will also need to edit one or both of the CoreDNS and Weave networking manifests to accommodate your change.
+It is *recommended* that you leave the pod and service networks with the following defaults. If you change them then you will also need to edit one or both of the CoreDNS and Calico networking manifests to accommodate your change.
 
 #### Pod Network
 
