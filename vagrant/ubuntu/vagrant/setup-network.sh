@@ -25,13 +25,21 @@ network:
     $INTERFACE:
       addresses:
         - $IP_ADDRESS/$CIDR
-      gateway4: $GATEWAY
-      nameservers:
-        addresses:
-          - 8.8.8.8
-          - 8.8.4.4
+      routes:
+        - to: default
+          via: $GATEWAY
+
 EOF
 
+# cat <<EOF > /etc/netplan/00-installer-config.yaml
+# network:
+#   ethernets:
+#     $INTERFACE:
+#       dhcp4: false
+#       dhcp6: false
+#   version: 2
+
+# EOF
 
 # Apply the new network configuration
 netplan apply

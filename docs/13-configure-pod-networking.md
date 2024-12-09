@@ -21,20 +21,16 @@ curl https://raw.githubusercontent.com/projectcalico/calico/v3.29.1/manifests/cu
 ```
 in the downloaded yaml, change the cidr to what we use: 10.244.0.0/16
 
-apply the manifests:
+install the operator:
 
 ```bash
-kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.1/manifests/crds.yaml
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.1/manifests/tigera-operator.yaml
 ```
 apply the edited manifest (make sure you edited it!)
 ```bash
 kubectl apply -f custom-resources.yaml
 ```
 
-```bash
-kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.1/manifests/tigera-operator.yaml
-
-```
 
 Wait for the Calico pods to be ready.
 

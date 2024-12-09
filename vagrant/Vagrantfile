@@ -38,6 +38,7 @@ def provision_kubernetes_node(node)
   node.vm.provision "setup-kernel", type: "shell", path: "ubuntu/setup-kernel.sh"
   node.vm.provision "setup-ssh", type: "shell", path: "ubuntu/ssh.sh"
   node.vm.provision "file", source: "ubuntu/cert_verify.sh", destination: "/home/vagrant/cert_verify.sh"
+  node.vm.provision "file", source: "ubuntu/net-cleanup.sh", destination: "/home/vagrant/net-cleanup.sh"
 end
 
 NUM_CONTROL_NODES = 1
@@ -85,6 +86,7 @@ Vagrant.configure("2") do |config|
       if i == 1
         node.vm.provision "file", source: "./ubuntu/tmux.conf", destination: "$HOME/.tmux.conf"
         node.vm.provision "file", source: "./ubuntu/vimrc", destination: "$HOME/.vimrc"
+        node.vm.provision "file", source: "./ubuntu/post-setup.sh", destination: "$HOME/post-setup.sh"
         node.vm.provision "file", source: "../tools/approve-csr.sh", destination: "$HOME/approve-csr.sh"
     end
     node.vm.provision "setup-network", type: "shell", path: "./ubuntu/vagrant/setup-network.sh" do |s|
