@@ -7,7 +7,7 @@ resolved_conf_path="/etc/systemd/resolved.conf"
 netplan_file="/etc/netplan/00-installer-config.yaml"
 
 # Define the new DNS values
-new_dns="4.2.2.2 8.8.8.8 192.168.1.1"
+new_dns="192.168.1.1 4.2.2.2 8.8.8.8"
 
 # Update /etc/systemd/resolved.conf
 if grep -q "\[Resolve\]" "$resolved_conf_path"; then

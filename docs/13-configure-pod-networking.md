@@ -31,8 +31,11 @@ apply the edited manifest (make sure you edited it!)
 kubectl apply -f custom-resources.yaml
 ```
 
+** Pre-edited custom-resources.yaml file
+```bash
+kubectl apply -f https://raw.githubusercontent.com/nthskyradiated/Kubernetes-HyperV-MultiNode/main/deployments/calico-custom.yaml
+```
 
-Wait for the Calico pods to be ready.
 
 ## Verification
 
@@ -41,7 +44,7 @@ Wait for the Calico pods to be ready.
 List the registered Kubernetes nodes from the controlplane node:
 
 ```bash
-kubectl get pods -n calico-system
+watch kubectl get pods -n calico-system
 ```
 
 Output will be similar to
