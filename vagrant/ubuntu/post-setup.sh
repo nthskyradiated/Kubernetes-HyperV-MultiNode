@@ -49,7 +49,7 @@ done
 
 # Download and install etcd
 echo_step "Installing etcd..."
-ETCD_VERSION="v3.5.9"
+ETCD_VERSION="v3.5.17"
 wget -q --https-only --timestamping \
   "https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-${ARCH}.tar.gz"
 tar -xvf etcd-${ETCD_VERSION}-linux-${ARCH}.tar.gz > /dev/null
@@ -297,6 +297,27 @@ EOF
   kubectl config use-context default --kubeconfig=admin.kubeconfig
 }
 
+ENCRYPTION_KEY=$(head -c 32 /dev/urandom | base64)
+
+cat > encryption-config.yaml <<EOF
+kind: EncryptionConfig
+apiVersion: v1
+resources:
+  - resources:
+      - secrets
+    providers:
+      - aescbc:
+          keys:
+            - name: key1
+              secret: ${ENCRYPTION_KEY}
+      - identity: {}
+EOF
+
+{
+  sudo mkdir -p /var/lib/kubernetes/
+  sudo mv encryption-config.yaml /var/lib/kubernetes/
+} 
+
 # Node array for iteration
 declare -A NODES
 NODES["node01"]="${NODE01}"
@@ -348,29 +369,8 @@ EOF
   }
 
   # Copy files to the node
-  scp -i ~/.ssh/id_rsa "${node}.key" "${node}.crt" "${node}.csr" "kube-proxy.kubeconfig" "ca.crt" "kube-proxy.crt" "kube-proxy.key" vagrant@"${ip}":~/
+  scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa "${node}.key" "${node}.crt" "${node}.csr" "${node}.kubeconfig" "kube-proxy.kubeconfig" "ca.crt" "kube-proxy.crt" "kube-proxy.key" vagrant@"${ip}":~/
 done
-
-ENCRYPTION_KEY=$(head -c 32 /dev/urandom | base64)
-
-cat > encryption-config.yaml <<EOF
-kind: EncryptionConfig
-apiVersion: v1
-resources:
-  - resources:
-      - secrets
-    providers:
-      - aescbc:
-          keys:
-            - name: key1
-              secret: ${ENCRYPTION_KEY}
-      - identity: {}
-EOF
-
-{
-  sudo mkdir -p /var/lib/kubernetes/
-  sudo mv encryption-config.yaml /var/lib/kubernetes/
-}
 
 {
   sudo mkdir -p /etc/etcd /var/lib/etcd /var/lib/kubernetes/pki
@@ -544,4 +544,20 @@ sudo chmod 600 /var/lib/kubernetes/*.kubeconfig
   sudo systemctl start kube-apiserver kube-controller-manager kube-scheduler
 }
 
+{
 
+  kubectl config set-cluster k8s-cluster01 \
+    --certificate-authority=ca.crt \
+    --embed-certs=true \
+    --server=https://${LOADBALANCER}:6443
+
+  kubectl config set-credentials admin \
+    --client-certificate=admin.crt \
+    --client-key=admin.key
+
+  kubectl config set-context k8s-cluster01 \
+    --cluster=k8s-cluster01 \
+    --user=admin
+
+  kubectl config use-context k8s-cluster01
+}
