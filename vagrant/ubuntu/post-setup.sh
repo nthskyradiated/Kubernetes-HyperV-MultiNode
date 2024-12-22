@@ -26,12 +26,27 @@ chmod +x kubectl
 sudo mv kubectl /usr/local/bin/
 echo_success "kubectl installed successfully."
 
-# Download calicoctl
-echo_step "Downloading calicoctl..."
-curl -L https://github.com/projectcalico/calico/releases/download/v3.29.1/calicoctl-linux-amd64 -o calicoctl --silent --show-error
-chmod +x calicoctl
-sudo mv calicoctl /usr/local/bin/
-echo_success "calicoctl installed successfully."
+# Download cilium
+echo_step "Downloading cilium..."
+CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
+CLI_ARCH=amd64
+if [ "$(uname -m)" = "aarch64" ]; then CLI_ARCH=arm64; fi
+curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
+sha256sum --check cilium-linux-${CLI_ARCH}.tar.gz.sha256sum
+sudo tar xzvfC cilium-linux-${CLI_ARCH}.tar.gz /usr/local/bin
+rm cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
+echo_success "cilium installed successfully."
+
+# Download Hubble
+echo_step "Downloading Hubble..."
+HUBBLE_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/hubble/master/stable.txt)
+HUBBLE_ARCH=amd64
+if [ "$(uname -m)" = "aarch64" ]; then HUBBLE_ARCH=arm64; fi
+curl -L --fail --remote-name-all https://github.com/cilium/hubble/releases/download/$HUBBLE_VERSION/hubble-linux-${HUBBLE_ARCH}.tar.gz{,.sha256sum}
+sha256sum --check hubble-linux-${HUBBLE_ARCH}.tar.gz.sha256sum
+sudo tar xzvfC hubble-linux-${HUBBLE_ARCH}.tar.gz /usr/local/bin
+rm hubble-linux-${HUBBLE_ARCH}.tar.gz{,.sha256sum}
+echo_success "Hubble installed successfully."
 
 # Set Kubernetes version
 echo_step "Fetching Kubernetes version..."
@@ -83,13 +98,15 @@ jq --version && echo_success "jq verified."
 echo_success "All tools installed successfully and are ready to use."
 
 # Remaining steps...
+echo_step "Configuring Kubernetes..."
 CONTROL01=$(dig +short controlplane01 | head -n1)
 LOADBALANCER=$(dig +short controlplane01 | head -n1)
 NODE01=$(dig +short node01)
 NODE02=$(dig +short node02)
 
-SERVICE_CIDR=10.96.0.0/24
+SERVICE_CIDR=10.96.0.0/16
 API_SERVICE=$(echo $SERVICE_CIDR | awk 'BEGIN {FS="."} ; { printf("%s.%s.%s.1", $1, $2, $3) }')
+POD_CIDR=10.244.0.0/16
 
 {
   # Create private key for CA
@@ -435,9 +452,6 @@ EOF
   sudo chmod 600 /var/lib/kubernetes/pki/*
 }
 
-POD_CIDR=10.244.0.0/16
-SERVICE_CIDR=10.96.0.0/16
-
 cat <<EOF | sudo tee /etc/systemd/system/kube-apiserver.service
 [Unit]
 Description=Kubernetes API Server
@@ -561,3 +575,72 @@ sudo chmod 600 /var/lib/kubernetes/*.kubeconfig
 
   kubectl config use-context k8s-cluster01
 }
+
+echo_success "Kubernetes controlplane configured successfully."
+
+# # Variables
+# WORKER_NODES=("192.168.1.221" "192.168.1.222")  # Replace with actual worker node IPs
+
+# # Add ECMP Routes to Service CIDR
+# echo_step "Configuring ECMP routes for service CIDR..."
+# EXISTING_ROUTE=$(ip route show $SERVICE_CIDR)
+
+# if [[ -z "$EXISTING_ROUTE" ]]; then
+#     echo "Adding ECMP route at runtime..."
+#     sudo ip route add $SERVICE_CIDR \
+#         nexthop via ${WORKER_NODES[0]} \
+#         nexthop via ${WORKER_NODES[1]}
+# else
+#     echo "Route already exists: $EXISTING_ROUTE"
+# fi
+
+# # Persist ECMP Routes in /etc/network/interfaces.d/route-k8s (Debian/Ubuntu specific)
+# ROUTE_CONFIG="/etc/network/interfaces.d/route-k8s"
+# if [[ ! -f "$ROUTE_CONFIG" ]]; then
+#     echo "Creating persistent route configuration at $ROUTE_CONFIG..."
+#     sudo bash -c "cat > $ROUTE_CONFIG" <<EOL
+# post-up ip route add $SERVICE_CIDR nexthop via ${WORKER_NODES[0]} nexthop via ${WORKER_NODES[1]}
+# EOL
+#     echo "Persistent route configuration created."
+# else
+#     echo "Persistent route configuration already exists at $ROUTE_CONFIG. Skipping creation."
+# fi
+
+# echo_success "ECMP route configuration complete."
+
+# Add Aliases to .bashrc
+BASHRC="$HOME/.bashrc"
+echo_step "Adding Kubernetes aliases to $BASHRC..."
+ALIASES=$(cat << 'EOF'
+
+# Kubernetes Aliases
+alias k='kubectl'
+alias kgp='kubectl get pod'
+alias kgs='kubectl get svc'
+alias kgsec='kubectl get secret'
+alias kaf='kubectl apply -f'
+alias kdf='kubectl delete -f'
+alias kga='kubectl get all -A'
+alias kd='kubectl describe'
+alias kgn='kubectl get namespace'
+alias kl='kubectl logs'
+alias kgnet='kubectl get networkpolicies'
+alias kdel='kubectl delete'
+alias kgpv='kubectl get pv'
+alias kgpvc='kubectl get pvc'
+alias kdm='kubectl get daemonset'
+
+EOF
+)
+
+if ! grep -q "alias k='kubectl'" "$BASHRC"; then
+    echo "$ALIASES" >> "$BASHRC"
+    echo "Aliases added to $BASHRC."
+else
+    echo "Aliases already exist in $BASHRC. Skipping addition."
+fi
+
+# Reload .bashrc to apply changes
+echo_step "Reloading $BASHRC..."
+source "$BASHRC"
+echo_success "Script execution completed!"
